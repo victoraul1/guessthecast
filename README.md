@@ -54,3 +54,16 @@ Google Analytics remains unloaded until the visitor accepts analytics in the coo
 The API creates the `winners` table automatically on its first successful database connection. `guessthecast.sql` is also included for manual administration or backup. Production hosting must run PHP with the PDO MySQL extension enabled.
 
 This product uses the TMDB API but is not endorsed or certified by TMDB.
+
+## Netfirms deployment
+
+Every push to `main` runs `.github/workflows/deploy-netfirms.yml` and uploads the production files to `/public_html/guessthecast/` over FTP. The workflow deliberately does not delete remote files, so the server-only `api/config.php` remains intact.
+
+Repository configuration:
+
+- Variable `NETFIRMS_FTP_HOST`: `ftp.victoraul.com`
+- Variable `NETFIRMS_FTP_PORT`: `21`
+- Variable `NETFIRMS_FTP_USERNAME`: `victoraul`
+- Secret `NETFIRMS_FTP_PASSWORD`: the Netfirms FTP password
+
+The password must be stored as a GitHub Actions secret and must never be committed to this repository.
