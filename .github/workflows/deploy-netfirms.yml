@@ -1,0 +1,62 @@
+name: Deploy to Netfirms
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: netfirms-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Upload production site
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build deployment package
+        run: |
+          mkdir -p _deploy
+          rsync -a ./ _deploy/ \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='.gitignore' \
+            --exclude='.DS_Store' \
+            --exclude='README.md' \
+            --exclude='guessthecast.sql' \
+            --exclude='api/config.example.php'
+
+      - name: Install FTP client
+        run: sudo apt-get update && sudo apt-get install --yes lftp
+
+      - name: Deploy to Netfirms
+        env:
+          FTP_HOST: ${{ vars.NETFIRMS_FTP_HOST }}
+          FTP_PORT: ${{ vars.NETFIRMS_FTP_PORT }}
+          FTP_USERNAME: ${{ vars.NETFIRMS_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.NETFIRMS_FTP_PASSWORD }}
+        run: |
+          test -n "$FTP_HOST"
+          test -n "$FTP_PORT"
+          test -n "$FTP_USERNAME"
+          test -n "$FTP_PASSWORD"
+          lftp -u "$FTP_USERNAME,$FTP_PASSWORD" -p "$FTP_PORT" "$FTP_HOST" <<'LFTP_COMMANDS'
+          set ftp:ssl-allow no
+          set ftp:passive-mode true
+          set net:max-retries 2
+          set net:timeout 20
+          mirror --reverse --only-newer --verbose --parallel=4 _deploy/ /public_html/guessthecast/
+          bye
+          LFTP_COMMANDS
+
+      - name: Verify live site
+        run: curl --fail --retry 3 --retry-delay 5 --max-time 30 https://guessthecast.com/ >/dev/null
+
