@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#120f1a">
+  <meta name="description" content="Swipe left or right to decide whether an actor appeared in the movie. Get 20 in a row to join the winners.">
+  <title>Guess the Cast — Swipe to Win</title>
+  <link rel="preconnect" href="https://image.tmdb.org">
+  <link rel="stylesheet" href="css/styles.css?v=20260804-12">
+  <script defer src="js/analytics.js?v=20260804-12"></script>
+  <script defer src="js/config.js?v=20260804-12"></script>
+  <script defer src="js/leaderboard.js?v=20260804-12"></script>
+  <script defer src="js/script.js?v=20260804-12"></script>
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Guess the Cast home">
+        <span class="brand-mark" aria-hidden="true">G</span>
+        <span>GUESS THE CAST</span>
+      </a>
+      <div class="media-tabs" role="group" aria-label="Choose a category">
+        <button class="media-tab active" id="movies-tab" type="button" aria-pressed="true">Movies</button>
+        <button class="media-tab" id="tv-tab" type="button" aria-pressed="false">TV Shows</button>
+      </div>
+      <button class="icon-button" id="open-leaderboard" type="button" aria-label="Open winners table" title="Winners">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8m-4-3v3M7 4h10v4a5 5 0 0 1-10 0V4Zm0 2H4v2a4 4 0 0 0 4 4m9-6h3v2a4 4 0 0 1-4 4"/></svg>
+      </button>
+    </header>
+
+    <section class="game" aria-labelledby="movie-title">
+      <div class="progress-head">
+        <div>
+          <span class="eyebrow">CURRENT STREAK</span>
+          <strong><span id="streak-count">0</span> / 20</strong>
+        </div>
+        <span id="streak-message">Start your casting run</span>
+      </div>
+      <div class="progress-track" role="progressbar" aria-label="Winning streak" aria-valuemin="0" aria-valuemax="20" aria-valuenow="0">
+        <div id="progress-fill"></div>
+      </div>
+
+      <div class="prompt">
+        <span class="eyebrow">DID THEY STAR IN</span>
+        <h1 id="movie-title">Loading your first movie…</h1>
+        <p id="movie-year">One face. One decision.</p>
+      </div>
+
+      <div class="card-stage" id="card-stage" aria-live="polite">
+        <div class="card-placeholder" id="card-placeholder">
+          <span class="loader"></span>
+          <p>Calling the casting director…</p>
+        </div>
+        <article class="actor-card" id="actor-card" hidden>
+          <img id="actor-photo" alt="" draggable="false">
+          <div class="card-shade"></div>
+          <div class="swipe-stamp swipe-no" aria-hidden="true">NOPE</div>
+          <div class="swipe-stamp swipe-yes" aria-hidden="true">CAST!</div>
+          <div class="actor-copy">
+            <h2 id="actor-name"></h2>
+            <p>Actor</p>
+          </div>
+          <div class="card-timer" id="card-timer" aria-label="3 seconds remaining">3</div>
+        </article>
+        <div class="result-flash" id="result-flash" hidden></div>
+      </div>
+
+      <div class="actions" aria-label="Answer controls">
+        <button class="answer-button answer-no" id="answer-no" type="button" disabled aria-label="No, not in the cast">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+        <div class="swipe-hint"><span>SWIPE LEFT</span><span>SWIPE RIGHT</span></div>
+        <button class="answer-button answer-yes" id="answer-yes" type="button" disabled aria-label="Yes, in the cast">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+        </button>
+      </div>
+      <p class="keyboard-hint">Use <kbd>←</kbd> no &nbsp;·&nbsp; <kbd>→</kbd> yes</p>
+    </section>
+  </main>
+
+  <footer>
+    <span>Powered by</span>
+    <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">
+      <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB">
+    </a>
+    <small>This product uses the TMDB API but is not endorsed or certified by TMDB.</small>
+    <small class="creator-credit">Created by <a href="https://www.vrgmarketsolutions.com/" target="_blank" rel="noopener">VRG Market Solutions LLC</a></small>
+    <button class="cookie-settings" id="cookie-settings" type="button">Cookie settings</button>
+  </footer>
+
+  <section class="cookie-banner" id="cookie-banner" role="dialog" aria-modal="true" aria-labelledby="cookie-title" hidden>
+    <div class="cookie-copy">
+      <h2 id="cookie-title">Your privacy, your choice</h2>
+      <p>We use optional Google Analytics cookies to understand how visitors use the game and improve it. You can accept or decline analytics.</p>
+    </div>
+    <div class="cookie-actions">
+      <button class="cookie-decline" id="cookie-decline" type="button">Decline</button>
+      <button class="cookie-accept" id="cookie-accept" type="button">Accept analytics</button>
+    </div>
+  </section>
+
+  <dialog class="modal" id="leaderboard-modal">
+    <div class="modal-header">
+      <div><span class="eyebrow">HALL OF FAME</span><h2>20 Club</h2></div>
+      <button class="close-button" data-close="leaderboard-modal" aria-label="Close winners table">×</button>
+    </div>
+    <p class="modal-intro">Players who survived 20 casting calls in a row.</p>
+    <div id="leaderboard-state" class="modal-state">Loading winners…</div>
+    <ol id="leaderboard-list" class="winner-list"></ol>
+  </dialog>
+
+  <dialog class="modal win-modal" id="win-modal">
+    <div class="confetti" aria-hidden="true">✦ &nbsp; ★ &nbsp; ✦</div>
+    <span class="eyebrow">20 CORRECT IN A ROW</span>
+    <h2>You know your cast.</h2>
+    <p>Claim your place in the winners table.</p>
+    <form id="winner-form">
+      <label for="winner-name">Your username</label>
+      <input id="winner-name" name="username" minlength="2" maxlength="24" autocomplete="nickname" placeholder="MovieBuff" required>
+      <button id="save-winner" type="submit">Join the 20 Club</button>
+      <p id="winner-form-message" class="form-message" role="status"></p>
+    </form>
+    <button class="text-button" id="play-again" type="button">Play again without saving</button>
+  </dialog>
+
+  <dialog class="modal error-modal" id="error-modal">
+    <h2>Intermission</h2>
+    <p id="error-message">We couldn't reach TMDB.</p>
+    <button id="retry-game" type="button">Try again</button>
+  </dialog>
+</body>
+</html>
